@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Human Emulator · Mission Control</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <canvas class="edge-canvas left" aria-hidden="true"></canvas>
+  <canvas class="edge-canvas right" aria-hidden="true"></canvas>
+  <div class="edge-rail left" aria-hidden="true" hidden>
+    <div class="edge-text">
+      <span class="brand">Human <b>Emulator</b></span><span class="sep">//</span>
+      <span class="opt">On-device agent</span><span class="sep opt">//</span>
+      <span id="edge-clock">--:--:--</span><span class="sep">//</span>
+      <span id="edge-mode">Standby</span>
+    </div>
+  </div>
+  <div class="edge-rail right" aria-hidden="true" hidden>
+    <div class="edge-text">
+      <span class="opt">Loop</span><span class="sep opt">//</span>
+      <span class="ph" data-ph="observe" style="--i:0">Observe</span><span class="sep">·</span>
+      <span class="ph" data-ph="decide" style="--i:1">Decide</span><span class="sep">·</span>
+      <span class="ph" data-ph="act" style="--i:2">Act</span><span class="sep">·</span>
+      <span class="ph" data-ph="verify" style="--i:3">Verify</span><span class="sep">·</span>
+      <span class="ph" data-ph="undo" style="--i:4">Undo</span>
+    </div>
+  </div>
+  <div class="shell">
+    <header class="topbar">
+      <div class="signal eyebrow">
+        <span class="dot" id="signal-dot"></span>
+        <span>On-device</span><span class="sep">·</span>
+        <span id="signal-network">Checking network</span><span class="sep">·</span>
+        <span>macOS</span>
+      </div>
+      <div class="topbar-right">
+        <div class="engine-state eyebrow" id="engine-state"><span class="dot warn"></span><span id="engine-label">Engine starting</span></div>
+        <button class="btn small ghost" id="restart" type="button" title="Restart the Human Emulator server">↻ Restart</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow accent">Mission Control</div>
+        <h1 class="wordmark" aria-label="Human Emulator"><span class="wm-word">Human</span> <span class="wm-word accent">Emulator</span></h1>
+        <p class="tagline">
+          Describe an outcome. Human Emulator <b>plans it with an on-device model</b>, acts on this Mac,
+          <b>checks every change by reading it back</b>, and can <b>undo the whole mission</b> in one click.
+        </p>
+      </div>
+      <div class="telemetry">
+        <div class="tile" id="tile-model"><div class="eyebrow">Model</div><div class="value">—</div><div class="sub">—</div></div>
+        <div class="tile" id="tile-speed"><div class="eyebrow">Generation</div><div class="value">—</div><div class="sub">tokens per second</div></div>
+        <div class="tile" id="tile-network"><div class="eyebrow">Internet</div><div class="value">—</div><div class="sub">—</div></div>
+        <div class="tile hot" id="tile-cloud"><div class="eyebrow">Cloud services</div><div class="value">None</div><div class="sub">no API keys used</div></div>
+      </div>
+    </section>
+
+    <div class="banner warn setup" id="setup" hidden></div>
+    <div class="brief-head">
+      <span class="eyebrow">Mission brief</span>
+      <span class="eyebrow accent" id="ready-label">Ready when you are</span>
+    </div>
+    <form class="brief" id="brief">
+      <textarea id="goal" maxlength="2000" placeholder="What should this Mac do?  e.g. every weekday at 8:30am, read my agenda out loud" autofocus></textarea>
+      <div class="brief-foot">
+        <div class="keys"><kbd>Enter</kbd> plan <span class="long">·</span> <kbd>⌥ Space</kbd> talk <span class="long">· nothing changes until you approve</span></div>
+        <div class="brief-buttons">
+          <button class="btn mic" id="mic" type="button" title="Talk to Human Emulator (⌥ Space)" aria-label="Talk">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 1 0-7 0v5A3.5 3.5 0 0 0 12 15Zm6-3.5a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.91V20H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.59a6 6 0 0 0 5-5.91Z"/></svg>
+            <span>Talk</span>
+          </button>
+          <button class="btn primary" id="engage" type="submit">Engage <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </form>
+    <section class="deck" aria-label="Example missions">
+      <div class="deck-bar">
+        <div class="deck-tabs" id="deck-tabs" role="tablist" aria-label="Mission categories"></div>
+        <div class="deck-tools">
+          <label class="deck-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 0 1 5.17 10.44l4.2 4.2a1 1 0 0 1-1.42 1.42l-4.2-4.2A6.5 6.5 0 1 1 10.5 4Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"/></svg>
+            <input id="deck-search" type="search" placeholder="Filter missions" autocomplete="off" spellcheck="false" aria-label="Filter example missions">
+            <kbd>/</kbd>
+          </label>
+          <div class="deck-sort" id="deck-sort" role="radiogroup" aria-label="Sort missions"></div>
+          <button class="btn small ghost" id="deck-surprise" type="button" title="Spin for a random mission">⚄ Surprise me</button>
+        </div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="deck-foot">
+        <span class="eyebrow" id="deck-summary"></span>
+        <button class="deck-more" id="deck-more" type="button" hidden>Show all ▾</button>
+        <span class="eyebrow deck-hint"><kbd>⌥1–9</kbd> load · <kbd>/</kbd> filter · ☆ pin</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div>
+        <article class="card" id="plan-card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Flight plan</div>
+              <div class="card-sub">plan → approve → act → verify → undo</div>
+            </div>
+            <div class="card-tools">
+              <span class="pill" id="mission-pill">Idle</span>
+              <button class="icon-btn" id="close-mission" type="button" title="Close this mission (keeps it in history)" aria-label="Close mission" hidden>✕</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div id="plan-body">
+            <div class="empty">Standing by for your next command.<small>Pick a mission above or describe your own.</small></div>
+          </div>
+        </article>
+        <article class="card" id="result-card" hidden>
+          <div class="card-head">
+            <div>
+              <div class="card-title">Result</div>
+              <div class="card-sub" id="result-sub">from step —</div>
+            </div>
+            <button class="btn" id="copy-result" type="button">Copy</button>
+          </div>
+          <div class="result" id="result-text"></div>
+        </article>
+      </div>
+
+      <div>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Flight log</div>
+              <div class="card-sub">observe → decide → act → verify</div>
+            </div>
+            <span class="pill" id="log-count">0 events</span>
+          </div>
+          <ul class="log" id="log"></ul>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Model stream</div>
+              <div class="card-sub">raw tokens from the local model, live</div>
+            </div>
+            <span class="pill" id="stream-pill">Quiet</span>
+          </div>
+          <div class="stream" id="stream"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="lower">
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Mission history</div>
+            <div class="card-sub">stored locally · undo survives restarts</div>
+          </div>
+          <button class="btn small danger" id="clear-history" type="button" title="Delete every finished mission">Clear all</button>
+        </div>
+        <ul class="history" id="history"></ul>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Routines</div>
+            <div class="card-sub">approved once · replayed on schedule · every run verified</div>
+          </div>
+          <span class="pill" id="routine-count">0 routines</span>
+        </div>
+        <ul class="routines" id="routines"></ul>
+      </article>
+    </section>
+
+    <section class="lower single">
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Audited skills</div>
+            <div class="card-sub">the model can only use these — it never runs its own code</div>
+          </div>
+          <span class="pill" id="skill-count">—</span>
+        </div>
+        <div class="skills" id="skills"></div>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <span>127.0.0.1 · Ollama on-device model · Apple Vision OCR · Apple on-device speech · Accessibility hands · AppleScript with argv-only inputs</span>
+      <span id="hardware">—</span>
+    </footer>
+  </div>
+  <div class="voice-hud" id="voice-hud" hidden>
+    <div class="voice-panel">
+      <div class="orb" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+      <canvas id="voice-wave" width="420" height="64"></canvas>
+      <div class="voice-state eyebrow" id="voice-state">Listening…</div>
+      <div class="voice-text" id="voice-text"></div>
+      <div class="voice-hint">Esc to cancel · audio never leaves this Mac</div>
+    </div>
+  </div>
+  <div class="voice-hud restart-hud" id="restart-hud" hidden>
+    <div class="voice-panel">
+      <div class="orb" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+      <div class="voice-state eyebrow" id="restart-state">Restarting Human Emulator…</div>
+      <div class="voice-text" id="restart-text">The dashboard reconnects by itself.</div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="/static/edges.js"></script>
+  <script src="/static/wordmark.js"></script>
+  <script src="/static/voice.js"></script>
+  <script src="/static/app.js"></script>
+  <script src="/static/deck.js"></script>
+</body>
+</html>
